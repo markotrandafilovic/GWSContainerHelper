@@ -37,8 +37,8 @@ az login --allow-no-subscriptions --tenant 31f142f5-df76-4112-80a3-19bce6a47b15
 ## Quick start
 
 ```powershell
-git clone <this-repo-url>
-cd powershell-scripts
+git clone https://github.com/markotrandafilovic/GWSContainerHelper.git
+cd GWSContainerHelper
 
 # Open the menu (self-elevates via a UAC prompt if you're not already admin)
 powershell -ExecutionPolicy Bypass -File .\Launch.ps1
@@ -56,7 +56,7 @@ optional conveniences (a `launch` command and a pinned Start Menu shortcut).
 ## Repository layout
 
 ```
-powershell-scripts/
+GWSContainerHelper/
 ├── Launch.ps1                 # Entry point: opens the launcher menu
 ├── New-LauncherShortcut.ps1   # Creates a pinnable, elevated Start Menu shortcut
 ├── README.md
