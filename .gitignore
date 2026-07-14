@@ -1,0 +1,35 @@
+# --- Secrets / licenses (never commit) ---
+# BC developer license: sensitive and re-issuable from BC. Kept on disk only,
+# never in git history (so it can't leak if this repo is ever pushed).
+DEV.bclicense
+*.bclicense
+
+# BC app packages / build artifacts
+*.app
+
+# Local DPAPI container-password cache (normally under %LOCALAPPDATA%; here for safety)
+bc-container-password.xml
+
+# --- Claude Code (kept local, never shared) ---
+# CLAUDE.md and the .claude/ folder are the maintainer's own Claude Code
+# instructions and settings. They stay on disk for local use but are not part
+# of the shared repository.
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# --- Tooling / machine-local ---
+
+# Per-user launcher settings (paths, container name, org, etc.). Created by
+# copying Settings.template.json on first run; never committed so each teammate
+# keeps their own values instead of inheriting someone else's.
+ScriptLauncher/Config/Settings.json
+
+# PartnerCore tool run output: timestamped findings dumps (findings-<ts>/).
+# Local, regenerated on each tool run -- an artifact directory, not source.
+.partnercore/
+
+# --- OS / editor cruft ---
+Thumbs.db
+desktop.ini
+*.log
