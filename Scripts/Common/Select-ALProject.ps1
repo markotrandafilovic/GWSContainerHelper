@@ -38,23 +38,48 @@ function Find-ProjectFile([string]$Root) {
 
 function Select-ALProject([string]$Root) {
     <#
-        Lists top-level folders under $Root that pass Find-ProjectFile, so
-        tooling/doc folders and worktree containers (which hold parallel
-        checkouts rather than being a project themselves) never appear. Only the
-        top-level folder is offered, never a checkout one level deeper.
+        Lists AL projects under $Root and lets you pick one with type-to-filter.
+
+        Discovery is a bounded two-level descent:
+          - A top-level folder that is itself a project (passes Find-ProjectFile)
+            is offered as-is and NOT descended into -- so a real project's
+            worktree checkouts one level deeper stay hidden, and tooling/doc
+            folders drop out.
+          - A top-level folder that is NOT itself a project (a grouping container
+            such as "MDE-Cloud") is opened one level deeper, and any of ITS
+            children that are projects are offered, displayed as
+            "<container>\<project>" so nested ones stay distinguishable.
+        Because we only ever descend into folders that are NOT themselves
+        projects, parallel checkouts under a real project are still never
+        surfaced.
     #>
     if (-not (Test-Path $Root)) {
         throw "AL root not found: $Root"
     }
 
-    $candidates = @(
-        Get-ChildItem -Path $Root -Directory |
-            Where-Object { @(Find-ProjectFile -Root $_.FullName).Count -gt 0 } |
-            Sort-Object Name
-    )
+    $candidates = [System.Collections.Generic.List[object]]::new()
+    foreach ($top in @(Get-ChildItem -Path $Root -Directory)) {
+        if (@(Find-ProjectFile -Root $top.FullName).Count -gt 0) {
+            # Top-level folder is itself a project: offer it, don't descend.
+            $candidates.Add([PSCustomObject]@{ Name = $top.Name; FullName = $top.FullName })
+        }
+        else {
+            # Not a project: treat as a grouping container and look one level in.
+            foreach ($child in @(Get-ChildItem -Path $top.FullName -Directory)) {
+                if (@(Find-ProjectFile -Root $child.FullName).Count -gt 0) {
+                    $candidates.Add([PSCustomObject]@{
+                        Name     = "$($top.Name)\$($child.Name)"
+                        FullName = $child.FullName
+                    })
+                }
+            }
+        }
+    }
+
+    $candidates = @($candidates | Sort-Object Name)
 
     if ($candidates.Count -eq 0) {
-        throw "No AL projects found under '$Root' (looked for app.json in <folder>, <folder>\app, <folder>\'app test')."
+        throw "No AL projects found under '$Root' (looked for app.json in <folder>, <folder>\app, <folder>\'app test' -- and one level down inside grouping folders)."
     }
 
     $picked = Select-FromList -Items $candidates -DisplaySelector { param($d) $d.Name } `
